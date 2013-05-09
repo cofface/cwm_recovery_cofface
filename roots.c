@@ -296,7 +296,8 @@ int ensure_path_mounted_at_mount_point(const char* path, const char* mount_point
     } else {
         // let's try mounting with the mount binary and hope for the best.
         char mount_cmd[PATH_MAX];
-        sprintf(mount_cmd, "mount %s", path);
+		//add support exfat file system(1.Change code path to mount_point 2./etc/recovery.fstab must be change vfat to auto)
+        sprintf(mount_cmd, "mount %s", mount_point); 
         return __system(mount_cmd);
     }
 
