@@ -40,6 +40,8 @@ __system(const char *command);
 void
 show_advanced_menu();
 
+void show_power_menu(); //add power menu by cofface
+
 int format_unknown_device(const char *device, const char* path, const char *fs_type);
 
 void

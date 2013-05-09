@@ -1395,6 +1395,51 @@ void show_advanced_menu()
     }
 }
 
+void show_power_menu() //add power menu by cofface
+{
+
+    static char* headers[] = {  "Reboot or Shutdown",
+                                "",
+                                NULL
+    };
+
+    static char* list[] = { "Reboot System",
+                            "Reboot to Recovery",
+                            "Reboot to Fastboot",
+			    "Shutdown",
+                            NULL
+    };
+
+    for (;;)
+    {
+        int chosen_item = get_filtered_menu_selection(headers, list, 0, 0, sizeof(list) / sizeof(char*));
+        if (chosen_item == GO_BACK)
+            break;
+        switch (chosen_item)
+        {
+            case 0:
+                ui_print("Rebooting System...\n");
+		android_reboot(ANDROID_RB_RESTART, 0, 0);
+                break;
+
+            case 1:
+                ui_print("Rebooting Into Recovery...\n");
+		android_reboot(ANDROID_RB_RESTART2, 0, "recovery");
+                break;
+
+	    case 2:
+		ui_print("Rebooting Into Fastboot Mode...\n");
+        	android_reboot(ANDROID_RB_RESTART2, 0, "bootloader");
+        	break;
+
+	    case 3:
+		ui_print("Shutting down...\n");
+        	android_reboot(ANDROID_RB_POWEROFF, 0, 0);
+		break;
+	}
+    }	
+}
+
 void write_fstab_root(char *path, FILE *file)
 {
     Volume *vol = volume_for_path(path);
@@ -1610,3 +1655,22 @@ int verify_root_and_recovery() {
     ensure_path_unmounted("/system");
     return ret;
 }
+
+#ifdef RECOVERY_CHARGEMODE
+void handle_chargemode() {
+    const char* filename = "/proc/cmdline";
+    struct stat file_info;
+    if (0 != stat(filename, &file_info))
+        return;
+    int file_len = file_info.st_size;
+    char* file_data = (char*)malloc(file_len + 1);
+    FILE *file = fopen(filename, "rb");
+    if (file == NULL)
+        return;
+    fread(file_data, file_len, 1, file);
+    file_data[file_len] = '\0';
+    fclose(file);
+    if (strstr(file_data, "androidboot.mode=charge") != NULL)
+        reboot(RB_POWER_OFF);
+ }
+#endif

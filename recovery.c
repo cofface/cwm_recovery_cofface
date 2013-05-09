@@ -152,6 +152,37 @@ fopen_path(const char *path, const char *mode) {
     return fp;
 }
 
+#ifdef RECOVERY_CHARGEMODE
+int get_chargemode() {
+    char buffer[1024], *p, *q;
+    int len;
+    int fd = open("/proc/app_info",O_RDONLY);
+    int flag = 0;
+
+        if (fd < 0) {
+        LOGE("could not open /proc/app_info:%s", strerror(errno));
+        }
+        do {
+            len = read(fd,buffer,sizeof(buffer)); }
+        while (len == -1 && errno == EINTR);
+
+    if (len < 0) {
+        LOGE("could not read /proc/app_info:%s", strerror(errno));
+        close(fd);
+    }
+    close(fd);
+	char * charge;
+	charge = strstr(buffer, "charge_flag");
+
+	if((int)charge[13] == 49 ){	
+		LOGI("Charge Flag: %c", charge[13]);
+		flag = 1;
+    }
+
+	return flag;
+}
+#endif
+
 // close a file, log an error if the error indicator is set
 static void
 check_and_fclose(FILE *fp, const char *name) {
@@ -741,6 +772,10 @@ prompt_and_wait() {
             case ITEM_POWEROFF:
                 poweroff = 1;
                 return;
+
+	    case ITEM_POWER:  //add power off menu by cofface
+                show_power_menu();
+		break;
         }
     }
 }
@@ -835,6 +870,11 @@ main(int argc, char **argv) {
             return setprop_main(argc, argv);
         return busybox_driver(argc, argv);
     }
+
+#ifdef RECOVERY_CHARGEMODE
+    handle_chargemode();
+#endif
+
     __system("/sbin/postrecoveryboot.sh");
 
     int is_user_initiated_recovery = 0;
@@ -844,6 +884,17 @@ main(int argc, char **argv) {
     freopen(TEMPORARY_LOG_FILE, "a", stdout); setbuf(stdout, NULL);
     freopen(TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
     printf("Starting recovery on %s", ctime(&start));
+
+#ifdef RECOVERY_CHARGEMODE
+    int flag;
+    flag = get_chargemode();
+
+    if(flag == 1){
+//        __system("mount /dev/block/mmcblk0p12 /system");
+//        __system("sleep 1");
+        __system("charge");
+    }else {
+#endif
 
     device_ui_init(&ui_parameters);
     ui_init();
@@ -995,6 +1046,11 @@ main(int argc, char **argv) {
     }
     return EXIT_SUCCESS;
 }
+
+#ifdef RECOVERY_CHARGEMODE
+	return 0;
+}
+#endif
 
 int get_allow_toggle_display() {
     return allow_display_toggle;

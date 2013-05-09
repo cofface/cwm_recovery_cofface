@@ -30,6 +30,7 @@ char* MENU_ITEMS[] = { "reboot system now",
                        "backup and restore",
                        "mounts and storage",
                        "advanced",
+                       "power menu", //add power menu by cofface
                        NULL };
 
 void device_ui_init(UIParameters* ui_parameters) {
