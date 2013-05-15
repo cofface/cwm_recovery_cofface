@@ -197,6 +197,10 @@ void gr_flip(void)
     /* swap front and back buffers */
     if (double_buffering)
         gr_active_fb = (gr_active_fb + 1) & 1;
+        
+        /* if samsungi9505 gr_active_fb must be used:
+        gr_active_fb = (gr_active_fb + 1) & 0;  
+        */
 
     /* copy data from the in-memory surface to the buffer we're about
      * to make active. */
