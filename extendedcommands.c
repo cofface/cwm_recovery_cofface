@@ -890,7 +890,7 @@ void show_partition_menu()
     static char* confirm = "Yes - Format";
     char confirm_string[255];
 
-    for (;;)
+   for (;;)
     {
         for (i = 0; i < mountable_volumes; i++)
         {
@@ -909,15 +909,16 @@ void show_partition_menu()
             options[mountable_volumes+i] = e->txt;
         }
 
+        //Mount usb storage support for /data/media
         if (!is_data_media()) {
-          options[mountable_volumes + formatable_volumes] = "mount USB storage";
-          options[mountable_volumes + formatable_volumes + 1] = NULL;
+            options[mountable_volumes + formatable_volumes] = "mount USB storage";
+            options[mountable_volumes + formatable_volumes + 1] = NULL;
+        } else {
+            options[mountable_volumes + formatable_volumes] = "format /data and /data/media (/sdcard)";
+            options[mountable_volumes + formatable_volumes + 1] = "mount USB storage";
+            options[mountable_volumes + formatable_volumes + 2] = NULL;
         }
-        else {
-          options[mountable_volumes + formatable_volumes] = "format /data and /data/media (/sdcard)";
-          options[mountable_volumes + formatable_volumes + 1] = NULL;
-        }
-
+        
         int chosen_item = get_menu_selection(headers, &options, 0, 0);
         if (chosen_item == GO_BACK)
             break;
@@ -937,6 +938,11 @@ void show_partition_menu()
                 handle_data_media_format(0);  
             }
         }
+        
+        else if (is_data_media() && chosen_item == (mountable_volumes+formatable_volumes+1)) {
+            show_mount_usb_storage_menu();
+        }
+        //end support for mount usb storage on /data/media
         else if (chosen_item < mountable_volumes) {
             MountMenuEntry* e = &mount_menu[chosen_item];
             Volume* v = e->v;
