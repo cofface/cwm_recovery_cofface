@@ -485,6 +485,7 @@ void ui_init(void)
 {
     ui_has_initialized = 1;
     gr_init();
+	gr_init();//解决t528w进去后黑屏bug
     ev_init(input_callback, NULL);
 #ifdef BOARD_TOUCH_RECOVERY
     touch_init();
