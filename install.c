@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "common.h"
 #include "install.h"
@@ -104,6 +105,8 @@ handle_firmware_update(char* type, char* filename, ZipArchive* zip) {
 }
 
 static const char *LAST_INSTALL_FILE = "/cache/recovery/last_install";
+
+bool skip_check_device_info(char *ignore_device_info);
 
 // If the package contains an update binary, extract it and run it.
 static int
@@ -206,6 +209,13 @@ try_update_binary(const char *path, ZipArchive *zip) {
         char* command = strtok(buffer, " \n");
         if (command == NULL) {
             continue;
+	} else if (strcmp(command, "assert") == 0) {
+                 char *ignore_device_info = strtok(NULL, " \n");
+                 if (skip_check_device_info(ignore_device_info)) 
+                         continue;
+                 char *ignore_device_info_part_two = strtok(NULL, "||");
+                 if (skip_check_device_info(ignore_device_info_part_two))
+                         continue;   
         } else if (strcmp(command, "progress") == 0) {
             char* fraction_s = strtok(NULL, " \n");
             char* seconds_s = strtok(NULL, " \n");
@@ -430,4 +440,17 @@ install_package(const char* path)
         chmod(LAST_INSTALL_FILE, 0644);
     }
     return result;
+}
+
+bool skip_check_device_info(char *ignore_device_info) {
+        char tmpbuf[256];
+        if (strstr(ignore_device_info, "ro.product.device") != NULL ||
+                        strstr(ignore_device_info, "ro.build.product") != NULL ||
+                        strstr(ignore_device_info, "ro.product.board") != NULL ||
+                        ststr(ignore_device_info, "ro.sdupdate.Check_info") != NULL) {
+                snprintf(tmpbuf, 255, "<#selectbg_g><b>Ignore device_info_check \n</b></#>");
+                miuiInstall_set_text(tmpbuf);
+                return true;
+        }
+                return false;
 }
