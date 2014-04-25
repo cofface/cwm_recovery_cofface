@@ -1038,7 +1038,7 @@ main(int argc, char **argv) {
     sync();
     if(!poweroff) {
         ui_print("Rebooting...\n");
-        android_reboot(ANDROID_RB_RESTART, 0, 0);
+        property_set(ANDROID_RB_PROPERTY, "");
     }
     else {
         ui_print("Shutting down...\n");
